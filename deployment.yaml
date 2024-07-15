@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-react-app1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: my-react-app1
+  template:
+    metadata:
+      labels:
+        app: my-react-app1
+    spec:
+      containers:
+      - name: my-react-app1
+        image: 180432984958.dkr.ecr.us-east-2.amazonaws.com/devopsfe:latest
+        ports:
+        - containerPort: 80
