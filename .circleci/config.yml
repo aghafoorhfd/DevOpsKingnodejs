@@ -1,57 +1,40 @@
-# This config was automatically generated from your source code
-# Stacks detected: cicd:gitlab-workflows:node_modules/tryer,deps:node:.,package_manager:yarn:
 version: 2.1
-orbs:
-  node: circleci/node@5
-jobs:
-  test-node:
-    # Install node dependencies and run tests
-    executor: node/default
-    steps:
-      - checkout
-      - node/install-packages:
-          pkg-manager: yarn
-      - run:
-          name: Run tests
-          command: yarn test --passWithNoTests
-  build-node:
-    # Build node project
-    executor: node/default
-    steps:
-      - checkout
-      - node/install-packages:
-          pkg-manager: yarn
-      - run:
-          command: yarn run build
-      - run:
-          name: Create the ~/artifacts directory if it doesn't exist
-          command: mkdir -p ~/artifacts
-      # Copy output to artifacts dir
-      - run:
-          name: Copy artifacts
-          command: cp -R build dist public .output .next .docusaurus ~/artifacts 2>/dev/null || true
-      - store_artifacts:
-          path: ~/artifacts
-          destination: node-build
-  deploy:
-    # This is an example deploy job, not actually used by the workflow
+
+executors:
+  docker-executor:
     docker:
-      - image: cimg/base:stable
+      - image: circleci/node:14
+    working_directory: ~/repo
+
+jobs:
+  build-and-push:
+    executor: docker-executor
     steps:
-      # Replace this with steps to deploy to users
+      - checkout
+      - setup_remote_docker:
+          version: 20.10.7
       - run:
-          name: deploy
-          command: '#e.g. ./deploy.sh'
+          name: Install Dependencies
+          command: npm install
       - run:
-          name: found gitlab workflows config
-          command: ':'
+          name: Build React App
+          command: npm run build
+      - run:
+          name: Build Docker Image okk
+          command: docker build -t devopsfe:latest .
+      - run:
+          name: Login to Docker Hub
+          command: |
+            aws ecr get-login-password --region us-east-2  --profile devopsprofile | docker login --username AWS --password-stdin  180432984958.dkr.ecr.us-east-2.amazonaws.com
+      - run:
+          name: Tag Docker Image
+          command: docker tag devopsfe:latest 180432984958.dkr.ecr.us-east-2.amazonaws.com/devopsfe:latest
+      - run:
+          name: Push Docker Image to Docker Hub
+          command: docker push 180432984958.dkr.ecr.us-east-2.amazonaws.com/devopsfe:latest
+
 workflows:
-  build-and-test:
+  version: 2
+  build_and_push:
     jobs:
-      - test-node
-      - build-node:
-          requires:
-            - test-node
-    # - deploy:
-    #     requires:
-    #       - build-node
+      - build-and-push
