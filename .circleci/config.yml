@@ -23,7 +23,7 @@ jobs:
       - run:
           name: Login to Docker Hub
           command: |
-            docker login -u AWS -p $(aws ecr get-login-password --region us-east-2) 180432984958.dkr.ecr.us-east-2.amazonaws.com
+            "aws ecr get-login-password --region | sudo docker login --username AWS --password-stdin 180432984958.dkr.ecr.us-east-2.amazonaws.com"
       - run:
           name: Build Docker Image
           command: docker build -t devopsfe .
