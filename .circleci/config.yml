@@ -21,21 +21,9 @@ jobs:
           command: npm run build
 
       - run:
-          name: Install AWS CLI
-          command: |
-            sudo apt-get update
-            sudo apt-get install -y curl unzip
-            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-            unzip awscliv2.zip
-            sudo ./aws/install
-      - run:
-          name: Verify AWS CLI Installation
-          command: aws --version
-
-      - run:
           name: Login to Docker Hub
           command: |
-            aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 180432984958.dkr.ecr.us-east-2.amazonaws.com
+            docker login -u AWS -p $(aws ecr get-login-password --region us-east-2) 180432984958.dkr.ecr.us-east-2.amazonaws.com
       - run:
           name: Build Docker Image
           command: docker build -t devopsfe .
